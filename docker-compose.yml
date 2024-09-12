@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-base #Change this to recognize your project name in docker
+    volumes:
+      - .:/var/www/html
+    networks:
+      - laravel_network
+
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: nginx 
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - "80:80"
+    networks:
+      - laravel_network
+    depends_on:
+      - app
+
+  db:
+    image: postgres:13
+    container_name: db
+    environment:
+      POSTGRES_DB: pgdb #This will generate your database (change to your desired identification)
+      POSTGRES_USER: pguser #This will generate your database_username (change to your desired identification)
+      POSTGRES_PASSWORD: pgpassword #This will generate your database_password (change to your desired identification)
+    ports:
+    - "5435:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - laravel_network
+
+networks:
+  laravel_network:
+    driver: bridge
+
+volumes:
+  pgdata:
